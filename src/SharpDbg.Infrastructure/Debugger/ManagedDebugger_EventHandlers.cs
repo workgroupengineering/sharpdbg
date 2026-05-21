@@ -10,8 +10,6 @@ public partial class ManagedDebugger
 	private void HandleProcessCreated(object? sender, CreateProcessCorDebugManagedCallbackEventArgs createProcessCorDebugManagedCallbackEventArgs)
 	{
 		_logger?.Invoke("Process created event");
-		_rawProcess = createProcessCorDebugManagedCallbackEventArgs.Process;
-
 		ContinueProcess();
 	}
 

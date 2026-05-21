@@ -40,7 +40,6 @@ public partial class ManagedDebugger : IDisposable
 
 	public bool IsRunning { get; private set; }
 	public EvalStatus EvalStatus { get; }
-	private CorDebugProcess? _rawProcess;
 
 	public ManagedDebugger(Action<string>? logger = null)
 	{
@@ -101,10 +100,10 @@ public partial class ManagedDebugger : IDisposable
 
 	private void ContinueProcess()
 	{
-		if (_rawProcess != null)
+		if (_process != null)
 		{
 			IsRunning = true;
-			_rawProcess.Continue(false);
+			_process.Continue(false);
 		}
 	}
 

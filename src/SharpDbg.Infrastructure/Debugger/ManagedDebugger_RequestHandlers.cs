@@ -192,11 +192,11 @@ public partial class ManagedDebugger
 	public void Continue()
 	{
 		_logger?.Invoke("Continue");
-		if (_rawProcess != null)
+		if (_process != null)
 		{
 			IsRunning = true;
 			_variableManager.ClearAndDisposeHandleValues();
-			_rawProcess.Continue(false);
+			_process.Continue(false);
 		}
 	}
 
@@ -206,9 +206,9 @@ public partial class ManagedDebugger
 	public void Pause()
 	{
 		_logger?.Invoke("Pause");
-		if (_rawProcess != null && IsRunning)
+		if (_process != null && IsRunning)
 		{
-			_rawProcess.Stop(0);
+			_process.Stop(0);
 			IsRunning = false;
 			_asyncStepper?.Disable();
 		}
@@ -243,7 +243,7 @@ public partial class ManagedDebugger
 			var stepper = SetupStepper(thread, AsyncStepper.StepType.StepOver);
 			IsRunning = true;
 			_variableManager.ClearAndDisposeHandleValues();
-			_rawProcess?.Continue(false);
+			_process?.Continue(false);
 		}
 	}
 
@@ -275,7 +275,7 @@ public partial class ManagedDebugger
 				var stepper = SetupStepper(thread, AsyncStepper.StepType.StepIn);
 				IsRunning = true;
 				_variableManager.ClearAndDisposeHandleValues();
-				_rawProcess?.Continue(false);
+				_process?.Continue(false);
 			}
 		}
 	}
@@ -310,7 +310,7 @@ public partial class ManagedDebugger
 				{
 					IsRunning = true;
 					_variableManager.ClearAndDisposeHandleValues();
-					_rawProcess?.Continue(false);
+					_process?.Continue(false);
 				}
 			}
 		}
