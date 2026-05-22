@@ -246,24 +246,6 @@ public partial class ManagedDebugger : IDisposable
 		return ilFrame;
 	}
 
-	private void Cleanup()
-	{
-		_asyncStepper?.Disable();
-		_threads.Clear();
-		_breakpointManager.Clear();
-		_variableManager.ClearAndDisposeHandleValues();
-
-		// Dispose all module info (which disposes symbol readers)
-		foreach (var moduleInfo in _modules.Values)
-		{
-			moduleInfo.Dispose();
-		}
-		_modules.Clear();
-
-		_isAttached = false;
-		IsRunning = false;
-	}
-
 	private static string GetFunctionFormattedName(CorDebugFunction function)
 	{
 		try
@@ -287,20 +269,50 @@ public partial class ManagedDebugger : IDisposable
 
 	public void Dispose()
 	{
-		// Attempt a graceful disconnect from the debuggee without terminating it
-		Disconnect(terminateDebuggee: false);
+		// Deactivate all breakpoints
+		foreach (var bp in _breakpointManager.GetAllBreakpoints().Where(b => b.CorBreakpoint != null))
+		{
+			try
+			{
+				bp.CorBreakpoint!.Activate(false);
+			}
+			catch (Exception ex)
+			{
+				_logger?.Invoke($"Error deactivating breakpoint during dispose: {ex.Message}");
+			}
+		}
 
-		// Remove our managed handler from ICorDebug so native code can release references
-		_corDebug?.SetManagedHandler(null);
+		_asyncStepper?.Dispose();
+		_asyncStepper = null;
+		_stepper = null!;
+		_threads.Clear();
+		_breakpointManager.Clear();
+		_variableManager.ClearAndDisposeHandleValues();
 
 		// Unsubscribe from callbacks to avoid any further event dispatch
 		_callbacks.OnAnyEvent -= OnAnyEvent;
 
-		Cleanup();
+		foreach (var moduleInfo in _modules.Values)
+		{
+			moduleInfo.Dispose();
+		}
+		_modules.Clear();
+
+		// Detach from the process
+		try
+		{
+			_process?.Detach();
+		}
+		catch
+		{
+			;
+			// ignore failure, e.g. if process was terminated
+		}
+
+		_isAttached = false;
+		IsRunning = false;
 		_process = null;
 		_corDebug = null;
-		_asyncStepper?.Dispose();
-		_asyncStepper = null;
 	}
 }
 

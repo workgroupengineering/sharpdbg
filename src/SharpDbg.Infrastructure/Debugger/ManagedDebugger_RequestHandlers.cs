@@ -599,7 +599,7 @@ public partial class ManagedDebugger
 				_logger?.Invoke($"Error terminating process: {ex.Message}");
 			}
 		}
-		Cleanup();
+		Dispose();
 	}
 
 	/// <summary>
@@ -615,35 +615,11 @@ public partial class ManagedDebugger
 		}
 		else
 		{
-			if (_process != null && _isAttached)
+			if (_process != null && _isAttached && IsRunning)
 			{
-				try
-				{
-					if (IsRunning)
-					{
-						// pause first
-						_process.Stop(0);
-						IsRunning = false;
-					}
-					foreach (var bp in _breakpointManager.GetAllBreakpoints().Where(b => b.CorBreakpoint != null))
-					{
-						try
-						{
-							bp.CorBreakpoint!.Activate(false);
-						}
-						catch (Exception ex)
-						{
-							_logger?.Invoke($"Error deactivating breakpoint during detach: {ex.Message}");
-						}
-					}
-					Cleanup();
-					_process.Detach();
-				}
-				catch (Exception ex)
-				{
-					_logger?.Invoke($"Error detaching: {ex.Message}");
-				}
+				_process.Stop(0);
 			}
+			Dispose();
 		}
 	}
 }
