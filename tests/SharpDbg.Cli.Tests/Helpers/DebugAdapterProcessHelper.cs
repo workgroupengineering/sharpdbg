@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using Microsoft.VisualStudio.Shared.VSCodeDebugProtocol;
 using Microsoft.VisualStudio.Shared.VSCodeDebugProtocol.Messages;
 using Newtonsoft.Json.Linq;
 using SharpDbg.Infrastructure.Debugger;
@@ -28,12 +27,10 @@ public static class DebugAdapterProcessHelper
 		process.Start();
 		return process;
 	}
-	public static DebugProtocolHost GetDebugProtocolHost(Process process, ITestOutputHelper testOutputHelper, TaskCompletionSource? initializedEventTcs = null) =>
-		GetDebugProtocolHost(process.StandardInput.BaseStream, process.StandardOutput.BaseStream, testOutputHelper, initializedEventTcs);
 
-	public static DebugProtocolHost GetDebugProtocolHost(Stream inputStream, Stream outputStream, ITestOutputHelper testOutputHelper, TaskCompletionSource? initializedEventTcs = null)
+	public static DisposableDebugProtocolHost GetDebugProtocolHost(Stream inputStream, Stream outputStream, ITestOutputHelper testOutputHelper, TaskCompletionSource? initializedEventTcs = null)
 	{
-		var debugProtocolHost = new DebugProtocolHost(inputStream, outputStream, false);
+		var debugProtocolHost = new DisposableDebugProtocolHost(inputStream, outputStream, false);
 		debugProtocolHost.LogMessage += (sender, args) =>
 		{
 			//testOutputHelper.WriteLine($"Log [DAP Host]: {args.Message}");
