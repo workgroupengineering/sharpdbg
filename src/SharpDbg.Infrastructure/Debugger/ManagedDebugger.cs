@@ -38,7 +38,6 @@ public partial class ManagedDebugger : IDisposable
 	public event Action<string>? OnOutput;
 	public event Action<BreakpointManager.BreakpointInfo>? OnBreakpointChanged;
 
-	public bool IsRunning { get; private set; }
 	public EvalStatus EvalStatus { get; }
 
 	public ManagedDebugger(Action<string>? logger = null)
@@ -92,7 +91,6 @@ public partial class ManagedDebugger : IDisposable
 			// Attach to the process
 			_process = _corDebug.DebugActiveProcess(processId, false);
 			_isAttached = true;
-			IsRunning = true;
 
 			_logger?.Invoke($"Attached to process: {processId}");
 		});
@@ -100,11 +98,8 @@ public partial class ManagedDebugger : IDisposable
 
 	private void ContinueProcess()
 	{
-		if (_process != null)
-		{
-			IsRunning = true;
-			_process.Continue(false);
-		}
+		Guard.Against.Null(_process);
+		_process.Continue(false);
 	}
 
 	private CorDebugStepper? _stepper;
@@ -310,7 +305,6 @@ public partial class ManagedDebugger : IDisposable
 		}
 
 		_isAttached = false;
-		IsRunning = false;
 		_process = null;
 		_corDebug = null;
 	}

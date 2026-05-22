@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using Ardalis.GuardClauses;
 using ClrDebug;
 using SharpDbg.Infrastructure.Debugger.ExpressionEvaluator;
 using SharpDbg.Infrastructure.Debugger.ExpressionEvaluator.Compiler;
@@ -131,7 +132,6 @@ public partial class ManagedDebugger
 		// Attach to the process (it's already waiting for us due to RegisterForRuntimeStartup)
 		_process = _corDebug.DebugActiveProcess(processId, false);
 		_isAttached = true;
-		IsRunning = true;
 
 		_logger?.Invoke($"Successfully attached to process: {processId}");
 	}
@@ -192,12 +192,9 @@ public partial class ManagedDebugger
 	public void Continue()
 	{
 		_logger?.Invoke("Continue");
-		if (_process != null)
-		{
-			IsRunning = true;
-			_variableManager.ClearAndDisposeHandleValues();
-			_process.Continue(false);
-		}
+		Guard.Against.Null(_process);
+		_variableManager.ClearAndDisposeHandleValues();
+		_process.Continue(false);
 	}
 
 	/// <summary>
@@ -206,10 +203,10 @@ public partial class ManagedDebugger
 	public void Pause()
 	{
 		_logger?.Invoke("Pause");
-		if (_process != null && IsRunning)
+		Guard.Against.Null(_process);
+		if (_process.IsRunning)
 		{
 			_process.Stop(0);
-			IsRunning = false;
 			_asyncStepper?.Disable();
 		}
 	}
@@ -241,7 +238,6 @@ public partial class ManagedDebugger
 			}
 
 			var stepper = SetupStepper(thread, AsyncStepper.StepType.StepOver);
-			IsRunning = true;
 			_variableManager.ClearAndDisposeHandleValues();
 			_process?.Continue(false);
 		}
@@ -273,7 +269,6 @@ public partial class ManagedDebugger
 				}
 
 				var stepper = SetupStepper(thread, AsyncStepper.StepType.StepIn);
-				IsRunning = true;
 				_variableManager.ClearAndDisposeHandleValues();
 				_process?.Continue(false);
 			}
@@ -308,7 +303,6 @@ public partial class ManagedDebugger
 				var stepper = SetupStepper(thread, AsyncStepper.StepType.StepOut);
 				if (stepper != null)
 				{
-					IsRunning = true;
 					_variableManager.ClearAndDisposeHandleValues();
 					_process?.Continue(false);
 				}
@@ -615,7 +609,7 @@ public partial class ManagedDebugger
 		}
 		else
 		{
-			if (_process != null && _isAttached && IsRunning)
+			if (_process != null && _isAttached && _process.IsRunning)
 			{
 				_process.Stop(0);
 			}

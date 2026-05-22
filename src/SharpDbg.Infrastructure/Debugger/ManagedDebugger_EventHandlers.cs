@@ -16,7 +16,6 @@ public partial class ManagedDebugger
 	private void HandleProcessExited(object? sender, ExitProcessCorDebugManagedCallbackEventArgs exitProcessCorDebugManagedCallbackEventArgs)
 	{
 		_logger?.Invoke($"Process exited");
-		IsRunning = false;
 		OnExited?.Invoke();
 		OnTerminated?.Invoke();
 	}
@@ -137,7 +136,6 @@ public partial class ManagedDebugger
 						return;
 					}
 
-					IsRunning = false;
 					if (_stepper is not null)
 					{
 						_stepper.Deactivate();
@@ -173,7 +171,6 @@ public partial class ManagedDebugger
 				return;
 			}
 
-			IsRunning = false;
 			if (managedBreakpoint.ResolvedBreakpointFromPdb is not {} resolvedBreakpoint) throw new UnreachableException("Breakpoint was not resolved from PDB - this should never happen, as breakpoints are only bound to resolved source locations");
 			OnStopped2?.Invoke(corThread.Id, managedBreakpoint.FilePath, resolvedBreakpoint.StartLine, resolvedBreakpoint.StartColumn, "breakpoint", null);
 		}
@@ -186,7 +183,6 @@ public partial class ManagedDebugger
 	private void HandleStepComplete(object? sender, StepCompleteCorDebugManagedCallbackEventArgs stepCompleteEventArgs)
 	{
 		var corThread = stepCompleteEventArgs.Thread;
-		IsRunning = false;
 		var ilFrame = (CorDebugILFrame) corThread.ActiveFrame;
 		// If we have an active async stepper, it means we would have a breakpoint set up for either yield or resume for the next await statement
 		// We would then have done a regular step over/in/out to get to that breakpoint
@@ -241,7 +237,6 @@ public partial class ManagedDebugger
 		BreakCorDebugManagedCallbackEventArgs breakCorDebugManagedCallbackEventArgs)
 	{
 		var corThread = breakCorDebugManagedCallbackEventArgs.Thread;
-		IsRunning = false;
 		_asyncStepper?.Disable();
 		if (_stepper is not null)
 		{
@@ -260,7 +255,6 @@ public partial class ManagedDebugger
 			return;
 		}
 		var corThread = exceptionCorDebugManagedCallbackEventArgs.Thread;
-		IsRunning = false;
 		_asyncStepper?.Disable();
 		if (_stepper is not null)
 		{
