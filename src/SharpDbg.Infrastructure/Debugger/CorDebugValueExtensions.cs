@@ -123,4 +123,15 @@ public static class CorDebugValueExtensions
 	{
 		return null;
 	}
+
+	public static bool IsExceptionType(this CorDebugType corDebugType)
+	{
+		var type = corDebugType;
+		while (type is not null)
+		{
+			if (ManagedDebugger.GetCorDebugTypeFriendlyName(type) == "System.Exception") return true;
+			type = type.Base;
+		}
+		return false;
+	}
 }

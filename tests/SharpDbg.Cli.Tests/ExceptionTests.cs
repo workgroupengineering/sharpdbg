@@ -53,7 +53,7 @@ public class ExceptionTests(ITestOutputHelper testOutputHelper)
 
 		List<Variable> expectedVariables =
 		[
-			new() { Name = "$exception",  EvaluateName = "$exception",  Value = $$"""{System.InvalidOperationException: Test exception{{"\r\n"}}   at DebuggableConsoleApp.Exceptions.Test(Boolean shouldThrow) in {{breakpointedFilePath}}:line 12}""", Type = "System.InvalidOperationException", VariablesReference = 4 },
+			new() { Name = "$exception",  EvaluateName = "$exception",  Value = $$"""System.InvalidOperationException: Test exception{{"\r\n"}}   at DebuggableConsoleApp.Exceptions.Test(Boolean shouldThrow) in {{breakpointedFilePath}}:line 12""", Type = "System.InvalidOperationException", VariablesReference = 4 },
 			new() { Name = "shouldThrow", EvaluateName = "shouldThrow", Value = "true",  Type = "bool" },
 			new() { Name = "test", EvaluateName = "test", Value = "true",  Type = "bool" },
 		];
@@ -61,5 +61,8 @@ public class ExceptionTests(ITestOutputHelper testOutputHelper)
 
 		variables.Should().HaveCount(3);
 		variables.Should().BeEquivalentTo(expectedVariables, options => options.Excluding(s => s.MemoryReference).Excluding(s => s.PresentationHint));
+
+		debugProtocolHost.WithEvaluateRequest(stackTraceResponse.StackFrames.First().Id, "$exception", out var evaluateResponse2);
+		evaluateResponse2.Result.Should().Be(expectedVariables[0].Value);
 	}
 }

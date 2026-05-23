@@ -121,6 +121,10 @@ public partial class ManagedDebugger
 			if (debuggerDisplayName is not null) debuggerDisplayValue = $"{debuggerDisplayName} = {debuggerDisplayValue}";
 			return new(typeName, debuggerDisplayValue, true, debugProxyTypeName);
 		}
+		if (corDebugObjectValue.ExactType.IsExceptionType())
+		{
+			return new(typeName, "{ToString()}", true, debugProxyTypeName);
+		}
 
 		return new(typeName, $"{{{typeName}}}", false, debugProxyTypeName);
 	}
