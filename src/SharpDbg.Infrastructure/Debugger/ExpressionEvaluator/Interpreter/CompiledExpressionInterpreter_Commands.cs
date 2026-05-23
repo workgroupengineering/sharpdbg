@@ -244,16 +244,13 @@ public partial class CompiledExpressionInterpreter
 
 			if (IsMethodParameterMatch(method, args))
 				return method;
+		}
 
-			var baseType = type.Base;
-			while (baseType != null)
-			{
-				var baseMethod = await FindMethodOnType(baseType, methodName, args, searchStatic, idsEmpty);
-				if (baseMethod != null)
-					return baseMethod;
-
-				baseType = baseType.Base;
-			}
+		// Walk base types if no matching method was found on this type
+		var baseType = type.Base;
+		if (baseType != null)
+		{
+			return await FindMethodOnType(baseType, methodName, args, searchStatic, idsEmpty);
 		}
 
 		return null;
