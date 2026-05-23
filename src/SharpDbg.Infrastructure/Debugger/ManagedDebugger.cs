@@ -265,6 +265,13 @@ public partial class ManagedDebugger
 	// Not intended to implement IDisposable - it is intended that this is called via Disconnect()
 	private void Dispose()
 	{
+		// Dispose modules, which releases PDB files
+		foreach (var moduleInfo in _modules.Values)
+		{
+			moduleInfo.Dispose();
+		}
+		_modules.Clear();
+
 		// Deactivate all breakpoints
 		foreach (var bp in _breakpointManager.GetAllBreakpoints().Where(b => b.CorBreakpoint != null))
 		{
@@ -288,12 +295,6 @@ public partial class ManagedDebugger
 		// Unsubscribe from callbacks to avoid any further event dispatch
 		_callbacks.OnAnyEvent -= OnAnyEvent;
 
-		foreach (var moduleInfo in _modules.Values)
-		{
-			moduleInfo.Dispose();
-		}
-		_modules.Clear();
-
 		// Detach from the process
 		try
 		{
@@ -301,7 +302,6 @@ public partial class ManagedDebugger
 		}
 		catch
 		{
-			;
 			// ignore failure, e.g. if process was terminated
 		}
 
