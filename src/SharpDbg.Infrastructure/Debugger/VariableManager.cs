@@ -81,6 +81,17 @@ public class VariableManager
 		}
 	}
 
+	public void ClearAndTryDisposeHandleValues()
+	{
+		lock (_lock)
+		{
+			var handleReferences = _references.Values.SelectMany(GetHandleValues).ToList();
+			handleReferences.ForEach(h => h.TryDispose());
+			_references.Clear();
+			_nextReference = 1;
+		}
+	}
+
 	private static IEnumerable<CorDebugHandleValue> GetHandleValues(VariablesReference r)
 	{
 		if (r.ObjectValue is CorDebugHandleValue ov)

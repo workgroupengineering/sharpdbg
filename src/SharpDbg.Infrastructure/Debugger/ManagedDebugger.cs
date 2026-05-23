@@ -291,7 +291,7 @@ public partial class ManagedDebugger
 		_asyncStepper = null;
 		_stepper = null!;
 		_threads.Clear();
-		_variableManager.ClearAndDisposeHandleValues();
+		_variableManager.ClearAndTryDisposeHandleValues();
 
 		// Unsubscribe from callbacks to avoid any further event dispatch
 		_callbacks.OnAnyEvent -= OnAnyEvent;
