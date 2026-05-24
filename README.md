@@ -69,7 +69,7 @@ This will produce the debug adapter executable at `artifacts/bin/SharpDbg.Cli/De
 
 ```cs
 	[DebuggerDisplay("Count = {Count}")]
-    public class List<T> : IList<T>, IList, IReadOnlyList<T>
+	public class List<T> : IList<T>, IList, IReadOnlyList<T>
 ```
 
 ### DebuggerTypeProxy & DebuggerBrowsable(.RootHidden) attributes
@@ -78,7 +78,7 @@ This will produce the debug adapter executable at `artifacts/bin/SharpDbg.Cli/De
 
 ```cs
 	[DebuggerTypeProxy(typeof(ICollectionDebugView<>))]
-    public class List<T> : IList<T>, IList, IReadOnlyList<T>
+	public class List<T> : IList<T>, IList, IReadOnlyList<T>
 ```
 
 ## References
