@@ -10,7 +10,7 @@ namespace SharpDbg.Cli.Tests;
 
 public class TcsContainer
 {
-	public required TaskCompletionSource<StoppedEvent> Tcs { get; set; }
+	public required TaskCompletionSource<DebugEvent> Tcs { get; set; }
 }
 
 public static partial class TestHelper
@@ -36,8 +36,9 @@ public static partial class TestHelper
 		var debuggableProcess = DebuggableProcessHelper.StartDebuggableProcess(startSuspended);
 		var initializedEventTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 		var debugProtocolHost = DebugAdapterProcessHelper.GetDebugProtocolHost(input, output, testOutputHelper, initializedEventTcs);
-		var stoppedEventTcs = new TcsContainer { Tcs = new TaskCompletionSource<StoppedEvent>(TaskCreationOptions.RunContinuationsAsynchronously) };
+		var stoppedEventTcs = new TcsContainer { Tcs = new TaskCompletionSource<DebugEvent>(TaskCreationOptions.RunContinuationsAsynchronously) };
 		debugProtocolHost.RegisterEventType<StoppedEvent>(@event => stoppedEventTcs.Tcs.TrySetResult(@event));
+		debugProtocolHost.RegisterEventType<BreakpointEvent>(@event => stoppedEventTcs.Tcs.TrySetResult(@event));
 		debugProtocolHost.Run();
 		return (debugProtocolHost, initializedEventTcs, stoppedEventTcs, debugAdapterDisposable, debuggableProcess);
 	}
@@ -62,10 +63,19 @@ public static partial class TestHelper
 	}
 	public static async Task<StoppedEvent> WaitForStoppedEvent(this DebugProtocolHost debugProtocolHost, TcsContainer stoppedEventTcsContainer)
 	{
-		var stoppedEvent = await stoppedEventTcsContainer.Tcs.Task.WaitAsync(TestContext.Current.CancellationToken);
-		stoppedEventTcsContainer.Tcs = new TaskCompletionSource<StoppedEvent>(TaskCreationOptions.RunContinuationsAsynchronously);
+		var stoppedEvent = await debugProtocolHost.WaitForEvent<StoppedEvent>(stoppedEventTcsContainer);
 		FillingMissingNetCoreDbgStopInfo(debugProtocolHost, stoppedEvent);
 		return stoppedEvent;
+	}
+
+	public static async Task<T> WaitForEvent<T>(this DebugProtocolHost host, TcsContainer container) where T : DebugEvent
+	{
+		while (true)
+		{
+			var e = await container.Tcs.Task.WaitAsync(TestContext.Current.CancellationToken);
+			container.Tcs = new TaskCompletionSource<DebugEvent>(TaskCreationOptions.RunContinuationsAsynchronously);
+			if (e is T correctEventType) return correctEventType;
+		}
 	}
 
 	public static DebugProtocolHost WithBreakpointsRequest(this DebugProtocolHost debugProtocolHost, string filePath, List<SharpDbgBreakpointRequest> breakpointRequests)
