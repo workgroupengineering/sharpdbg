@@ -2,9 +2,11 @@
 
 namespace SharpDbg.Infrastructure;
 
+// https://github.com/lordmilko/ClrDebug/blob/5f46218f4b840ab8a94920623dc263b5f2334138/Samples/NetCore/Program.cs
 public static class ClrDebugExtensions
 {
-	public static CorDebug Automatic(DbgShim dbgshim, int pid)
+	/// resumeHandle should be passed in Launch scenarios, typically not passed in attach scenarios
+	public static CorDebug Automatic(DbgShim dbgshim, int pid, nint? resumeHandle = null)
 	{
 		IntPtr unregisterToken = IntPtr.Zero;
 
@@ -20,10 +22,6 @@ public static class ClrDebugExtensions
 			 * ourselves, however in the Automatic example, RegisterForRuntimeStartup calls GetStartupNotificationEvent itself internally. In the latter scenario,
 			 * technically speaking there is the possibility of a race occurring even without us stepping in the debugger, but that's the risk you take when
 			 * you use RegisterForRuntimeStartup */
-
-			//dbgshim.ResumeProcess(resumeHandle);     //Do not step! the CLR may initialize while you're stepping! Either set a breakpoint in the PSTARTUP_CALLBACK or AFTER RegisterForRuntimeStartup
-
-			//Do not step! the CLR may initialize while you're stepping! Either set a breakpoint in the PSTARTUP_CALLBACK or AFTER RegisterForRuntimeStartup
 
 			//Our DbgShim object will cache the last delegate passed to native code to prevent it being garbage collected.
 			//As such there is no need to GC.KeepAlive() anything
@@ -44,12 +42,14 @@ public static class ClrDebugExtensions
 				wait.Set();
 			});
 
+			if (resumeHandle is not null) dbgshim.ResumeProcess(resumeHandle.Value); // Do not step! the CLR may initialize while you're stepping! Either set a breakpoint in the PSTARTUP_CALLBACK or AFTER RegisterForRuntimeStartup
+
 			wait.WaitOne();
 		}
 		finally
 		{
-			if (unregisterToken != IntPtr.Zero)
-				dbgshim.UnregisterForRuntimeStartup(unregisterToken);
+			if (unregisterToken != IntPtr.Zero) dbgshim.UnregisterForRuntimeStartup(unregisterToken);
+			if (resumeHandle is not null) dbgshim.CloseResumeHandle(resumeHandle.Value);
 		}
 
 		//if callbackHR was not S_OK, an error occurred while attempting to register for runtime startup

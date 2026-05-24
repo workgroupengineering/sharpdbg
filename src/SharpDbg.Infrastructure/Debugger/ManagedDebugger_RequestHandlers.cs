@@ -59,7 +59,7 @@ public partial class ManagedDebugger
 
 		// Build command line: "program" "arg1" "arg2" ...
 		var commandLine = new StringBuilder();
-		commandLine.Append('"').Append(program).Append('"');
+		commandLine.Append("dotnet ").Append('"').Append(program).Append('"');
 		foreach (var arg in args)
 		{
 			commandLine.Append(' ').Append('"').Append(arg.Replace("\"", "\\\"")).Append('"');
@@ -72,60 +72,27 @@ public partial class ManagedDebugger
 		var dbgshim = new DbgShim(NativeLibrary.Load(dbgShimPath));
 
 		// Create process suspended
-		var result = dbgshim.CreateProcessForLaunch(
-			commandLine.ToString(),
-			bSuspendProcess: true,
-			lpEnvironment: IntPtr.Zero, // TODO: support environment variables
-			lpCurrentDirectory: workingDirectory);
+		CreateProcessForLaunchResult result;
+		try
+		{
+			result = dbgshim.CreateProcessForLaunch(
+				commandLine.ToString(),
+				bSuspendProcess: true,
+				lpEnvironment: IntPtr.Zero, // TODO: support environment variables
+				lpCurrentDirectory: workingDirectory);
+		}
+		catch (Exception ex)
+		{
+			_logger?.Invoke($"CreateProcessForLaunch failed: {ex.GetType().Name}: {ex.Message}");
+			throw;
+		}
 
 		var processId = result.ProcessId;
 		var resumeHandle = result.ResumeHandle;
 
 		_logger?.Invoke($"Process created suspended with PID: {processId}");
 
-		// Register for runtime startup callback
-		IntPtr unregisterToken = IntPtr.Zero;
-		var wait = new AutoResetEvent(false);
-		CorDebug? cordebug = null;
-		HRESULT callbackHr = HRESULT.E_FAIL;
-
-		try
-		{
-			unregisterToken = dbgshim.RegisterForRuntimeStartup(processId, (pCordb, parameter, hr) =>
-			{
-				cordebug = pCordb;
-				callbackHr = hr;
-				wait.Set();
-			});
-
-			// Resume the process so CLR can start
-			_logger?.Invoke("Resuming process...");
-			dbgshim.ResumeProcess(resumeHandle);
-			dbgshim.CloseResumeHandle(resumeHandle);
-
-			// Wait for CLR startup (with timeout)
-			if (!wait.WaitOne(TimeSpan.FromSeconds(30)))
-			{
-				throw new InvalidOperationException("Timeout waiting for CLR to start in target process");
-			}
-		}
-		finally
-		{
-			if (unregisterToken != IntPtr.Zero)
-			{
-				dbgshim.UnregisterForRuntimeStartup(unregisterToken);
-			}
-		}
-
-		if (cordebug == null)
-		{
-			throw new DebugException(callbackHr);
-		}
-
-		_logger?.Invoke($"CLR started, initializing debugger for PID: {processId}");
-
-		// Initialize debugging session
-		_corDebug = cordebug;
+		_corDebug = ClrDebugExtensions.Automatic(dbgshim, processId, resumeHandle);
 		_corDebug.Initialize();
 		_corDebug.SetManagedHandler(_callbacks);
 
