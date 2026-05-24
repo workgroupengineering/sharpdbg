@@ -87,23 +87,42 @@ public static class CorDebugValueExtensions
 	public static async Task<CorDebugValue?> GetPropertyValue(this CorDebugValue objectValue, CorDebugManagedCallback callback, EvalStatus evalStatus, CorDebugILFrame ilFrame, string propertyName)
 	{
 		var unwrappedValue = objectValue.UnwrapDebugValueToObject();
-		var corDebugClass = unwrappedValue.Class;
-		var metadataImport = corDebugClass.Module.GetMetaDataInterface().MetaDataImport;
-		var mdProperty = metadataImport.GetPropertyWithName(corDebugClass.Token, propertyName);
-		if (mdProperty is null || mdProperty.Value.IsNil) return null;
 
-		var propertyProps = metadataImport.GetPropertyProps(mdProperty.Value);
+		CorDebugType? currentType = unwrappedValue.ExactType;
+		mdProperty foundPropertyDef = default;
+		CorDebugClass? foundClass = null;
+		MetaDataImport? foundMetadata = null;
+
+		// Find property on base type if necessary
+		while (currentType != null)
+		{
+			var cls = currentType.Class;
+			var meta = cls.Module.GetMetaDataInterface().MetaDataImport;
+			var prop = meta.GetPropertyWithName(cls.Token, propertyName);
+			if (prop?.IsNil is false)
+			{
+				foundPropertyDef = prop.Value;
+				foundClass = cls;
+				foundMetadata = meta;
+				break;
+			}
+			currentType = currentType.Base;
+		}
+
+		if (foundClass is null || foundMetadata is null || foundPropertyDef.IsNil) return null;
+
+		var propertyProps = foundMetadata.GetPropertyProps(foundPropertyDef);
 		// Get the get method for the property
 		var getMethodDef = propertyProps.pmdGetter;
 		if (getMethodDef == mdMethodDef.Nil) return null; // No get method
 
 		// Get method attributes to check if it's static
-		var getterMethodProps = metadataImport.GetMethodProps(getMethodDef);
+		var getterMethodProps = foundMetadata.GetMethodProps(getMethodDef);
 		var getterAttr = getterMethodProps.pdwAttr;
 
 		var isStatic = getterAttr.IsMdStatic();
 
-		var getMethod = corDebugClass.Module.GetFunctionFromToken(getMethodDef);
+		var getMethod = foundClass.Module.GetFunctionFromToken(getMethodDef);
 		var eval = ilFrame.Chain.Thread.CreateEval();
 
 		// May not be correct, will need further testing
