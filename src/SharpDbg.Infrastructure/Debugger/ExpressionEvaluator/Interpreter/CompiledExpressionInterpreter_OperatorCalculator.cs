@@ -91,7 +91,7 @@ public partial class CompiledExpressionInterpreter
 				var result = await CallUnaryOperator(opName, realValue);
 				if (result != null)
 				{
-					evalStack.First.Value.CorDebugValue = result;
+					evalStack.First!.Value.CorDebugValue = result;
 					return result;
 				}
 			}
@@ -114,7 +114,7 @@ public partial class CompiledExpressionInterpreter
 		var resultData = CalculatePrimitive(type1, type2, opType, data1, data2);
 		var result = await CreateValueFromPrimitiveData(resultData);
 
-		evalStack.First.Value.CorDebugValue = result;
+		evalStack.First!.Value.CorDebugValue = result;
 		return result;
 	}
 
@@ -128,7 +128,7 @@ public partial class CompiledExpressionInterpreter
 		var resultData = CalculatePrimitiveUnary(type, opType, data);
 		var result = await CreateValueFromPrimitiveData(resultData);
 
-		evalStack.First.Value.CorDebugValue = result;
+		evalStack.First!.Value.CorDebugValue = result;
 		return result;
 	}
 

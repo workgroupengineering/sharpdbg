@@ -174,7 +174,7 @@ public partial class ManagedDebugger
 			if (managedBreakpoint.ResolvedBreakpointFromPdb is not {} resolvedBreakpoint) throw new UnreachableException("Breakpoint was not resolved from PDB - this should never happen, as breakpoints are only bound to resolved source locations");
 			OnStopped2?.Invoke(corThread.Id, managedBreakpoint.FilePath, resolvedBreakpoint.StartLine, resolvedBreakpoint.StartColumn, "breakpoint", null);
 		}
-		catch (Exception e)
+		catch (Exception)
 		{
 			throw; // TODO handle exception
 		}

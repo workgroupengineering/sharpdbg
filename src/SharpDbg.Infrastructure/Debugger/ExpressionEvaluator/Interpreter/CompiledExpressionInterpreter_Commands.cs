@@ -294,7 +294,7 @@ public partial class CompiledExpressionInterpreter
 			evalStack.RemoveFirst();
 		}
 
-		var entry = evalStack.First.Value;
+		var entry = evalStack.First!.Value;
 		if (entry.PreventBinding)
 			return;
 
@@ -384,7 +384,7 @@ public partial class CompiledExpressionInterpreter
 
 		var stringBuilder = new StringBuilder();
 
-		var components = new CorDebugValue?[componentCount];
+		var components = new CorDebugValue[componentCount];
 		// Retrieve components in reverse order
 		for (var i = componentCount - 1; i >= 0; i--)
 		{
@@ -492,7 +492,7 @@ public partial class CompiledExpressionInterpreter
 		if (evalStack.Count < 2)
 			throw new InvalidOperationException("Stack underflow in SimpleMemberAccessExpression");
 
-		var identifier = evalStack.First.Value.Identifiers.FirstOrDefault() ?? "";
+		var identifier = evalStack.First!.Value.Identifiers.FirstOrDefault() ?? "";
 		var genericTypes = evalStack.First.Value.GenericTypeCache;
 		evalStack.RemoveFirst();
 
@@ -515,7 +515,7 @@ public partial class CompiledExpressionInterpreter
 		if (evalStack.Count < 2)
 			throw new InvalidOperationException("Stack underflow in MemberBindingExpression");
 
-		var identifier = evalStack.First.Value.Identifiers.FirstOrDefault() ?? "";
+		var identifier = evalStack.First!.Value.Identifiers.FirstOrDefault() ?? "";
 		evalStack.RemoveFirst();
 
 		var entry = evalStack.First.Value;
@@ -538,7 +538,7 @@ public partial class CompiledExpressionInterpreter
 
 	private async Task SizeOfExpression(LinkedList<EvalStackEntry> evalStack)
 	{
-		var entry = evalStack.First.Value;
+		var entry = evalStack.First!.Value;
 		var size = 0;
 
 		if (entry.CorDebugValue != null)
@@ -606,7 +606,7 @@ public partial class CompiledExpressionInterpreter
 
 	private async Task CoalesceExpression(LinkedList<EvalStackEntry> evalStack)
 	{
-		var rightEntry = evalStack.First.Value;
+		var rightEntry = evalStack.First!.Value;
 		var rightValue = await GetFrontStackEntryValue(evalStack);
 		var realRight = await GetRealValueWithType(rightValue!);
 		evalStack.RemoveFirst();
