@@ -10,7 +10,7 @@ public partial class CompiledExpressionInterpreter(RuntimeAssemblyPrimitiveTypeC
 	private readonly CorDebugManagedCallback _debuggerManagedCallback = debuggerManagedCallback;
 	private readonly RuntimeAssemblyPrimitiveTypeClasses _runtimeAssemblyPrimitiveTypeClasses = runtimeAssemblyPrimitiveTypeClasses;
 
-	private CompiledExpressionEvaluationContext _context;
+	private CompiledExpressionEvaluationContext _context = null!;
 
 	public async Task<EvaluationResult> Interpret(CompiledExpression compiledExpression, CompiledExpressionEvaluationContext context)
 	{
@@ -38,7 +38,7 @@ public partial class CompiledExpressionInterpreter(RuntimeAssemblyPrimitiveTypeC
 			}
 
 			var resultValue = await GetFrontStackEntryValue(evalStack, true);
-			var setterData = evalStack.First.Value.SetterData;
+			var setterData = evalStack.First!.Value.SetterData;
 
 			return new EvaluationResult
 			{

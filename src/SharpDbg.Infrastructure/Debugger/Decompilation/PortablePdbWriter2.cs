@@ -66,14 +66,14 @@ public class PortablePdbWriter2
 		Stream targetStream,
 		bool noLogo = false,
 		BlobContentId? pdbId = null,
-		IProgress<DecompilationProgress> progress = null,
+		IProgress<DecompilationProgress>? progress = null,
 		string currentProgressTitle = "Generating portable PDB...",
 		int maxDegreeOfParallelism = -1,
 		CancellationToken cancellationToken = default)
 	{
 		MetadataBuilder metadata = new MetadataBuilder();
 		MetadataReader reader = file.Metadata;
-		var entrypointHandle = MetadataTokens.MethodDefinitionHandle(file.Reader.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress);
+		var entrypointHandle = MetadataTokens.MethodDefinitionHandle(file.Reader.PEHeaders.CorHeader!.EntryPointTokenOrRelativeVirtualAddress);
 
 		var sequencePointBlobs = new Dictionary<MethodDefinitionHandle, (DocumentHandle Document, BlobHandle SequencePoints)>();
 		var localScopes = new List<(MethodDefinitionHandle Method, ImportScopeInfo Import, int Offset, int Length, HashSet<ILVariable> Locals)>();
@@ -163,7 +163,7 @@ public class PortablePdbWriter2
 
 			foreach (var function in result.DebugInfoGen.Functions)
 			{
-				var method = function.MoveNextMethod ?? function.Method;
+				var method = function.MoveNextMethod ?? function.Method ?? throw new InvalidOperationException("Function does not have a method associated with it");
 				var methodHandle = (MethodDefinitionHandle)method.MetadataToken;
 				result.SequencePoints.TryGetValue(function, out var points);
 				ProcessMethod(methodHandle, document, points, result.SyntaxTree);
@@ -171,7 +171,7 @@ public class PortablePdbWriter2
 				{
 					stateMachineMethods.Add((
 						(MethodDefinitionHandle)function.MoveNextMethod.MetadataToken,
-						(MethodDefinitionHandle)function.Method.MetadataToken
+						(MethodDefinitionHandle)function.Method!.MetadataToken
 					));
 					customDebugInfo.Add((
 						function.MoveNextMethod.MetadataToken,
@@ -221,7 +221,7 @@ public class PortablePdbWriter2
 			foreach (var local in localScope.Locals.OrderBy(l => l.Index))
 			{
 				var localVarName = local.Name != null ? metadata.GetOrAddString(local.Name) : default;
-				metadata.AddLocalVariable(LocalVariableAttributes.None, local.Index.Value, localVarName);
+				metadata.AddLocalVariable(LocalVariableAttributes.None, local.Index!.Value, localVarName);
 			}
 
 			metadata.AddLocalScope(localScope.Method, localScope.Import.Handle, firstLocalVariable,
@@ -260,7 +260,7 @@ public class PortablePdbWriter2
 		return collectedSourceFiles;
 
 		void ProcessMethod(MethodDefinitionHandle method, DocumentHandle document,
-			List<SequencePoint> sequencePoints, SyntaxTree syntaxTree)
+			List<SequencePoint>? sequencePoints, SyntaxTree syntaxTree)
 		{
 			var methodDef = reader.GetMethodDefinition(method);
 			int localSignatureRowId;

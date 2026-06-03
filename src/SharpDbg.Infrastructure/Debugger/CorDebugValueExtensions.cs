@@ -36,10 +36,10 @@ public static class CorDebugValueExtensions
 	public static string GetStringWithoutBug(this CorDebugStringValue corDebugStringValue, int cchString)
 	{
 		TryGetString(corDebugStringValue, cchString, out var szStringResult).ThrowOnNotOK();
-		return szStringResult;
+		return szStringResult!;
 	}
 
-	private static HRESULT TryGetString(CorDebugStringValue corDebugStringValue, int cchString, out string szStringResult)
+	private static HRESULT TryGetString(CorDebugStringValue corDebugStringValue, int cchString, out string? szStringResult)
 	{
 		char[] chArray = new char[cchString];
 		int pcchString;
@@ -49,7 +49,7 @@ public static class CorDebugValueExtensions
 			szStringResult = ClrDebug.Extensions.CreateString(chArray, pcchString + 1);
 			return (HRESULT) num;
 		}
-		szStringResult = (string) null;
+		szStringResult = null;
 		return (HRESULT) num;
 	}
 
