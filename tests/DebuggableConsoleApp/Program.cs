@@ -12,6 +12,7 @@ public static class Program
 		var myLambdaClass = new MyLambdaClass();
 		var myClass = new MyClass();
 		var myAsyncClass = new MyAsyncClass();
+		var myAsyncMethodEvalClass = new AsyncMethodEvalClass();
 		var myClassNoMembers = new MyClassNoMembers();
 		var hitConditionClass = new HitConditionClass();
 		var throwException = false;
@@ -23,6 +24,7 @@ public static class Program
 			myClassNoMembers.MyMethod(42);
 			hitConditionClass.Test();
 			var asyncResult = myAsyncClass.MyMethodAsync(4).GetAwaiter().GetResult();
+			myAsyncMethodEvalClass.Test().GetAwaiter().GetResult();
 			Exceptions.Test(throwException);
 			Thread.Sleep(100);
 			//await Task.Delay(500);
