@@ -94,8 +94,8 @@ public partial class ManagedDebugger
 	{
 		var module = corDebugObjectValue.Class.Module;
 		var metaDataImport = module.GetMetaDataInterface().MetaDataImport;
-		var baseTypeName = GetCorDebugTypeFriendlyName(corDebugObjectValue.ExactType.Base);
-		if (baseTypeName == "System.Enum")
+		var baseTypeName = corDebugObjectValue.ExactType.Base is {} baseType ? GetCorDebugTypeFriendlyName(baseType) : null; // ExactType.Base is null when ExactType is System.Object
+		if (baseTypeName is "System.Enum")
 		{
 			var valueFieldDef = metaDataImport.FindField(corDebugObjectValue.Class.Token, "value__", 0, 0);
 			var valueField = corDebugObjectValue.GetFieldValue(corDebugObjectValue.Class.Raw, valueFieldDef);
