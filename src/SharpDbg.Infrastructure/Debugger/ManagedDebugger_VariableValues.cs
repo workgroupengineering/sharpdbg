@@ -119,6 +119,14 @@ public partial class ManagedDebugger
 		if (hasDebuggerDisplayAttribute)
 		{
 			var (debuggerDisplayValue, debuggerDisplayName) = GetCustomAttributeCtorStringArgAndNamedArg(debuggerDisplayAttribute, "Name");
+			if (typeName.StartsWith("<>f__AnonymousType"))
+			{
+				// DebuggerDisplay Name for an anonymous type is e.g. `\{ Id = {Id}, Name = {Name} }`
+				// '\' denotes escaping a bracket for presumably VS's DebuggerDisplay interpreter
+				// Since we are leaning on the similarity of DebuggerDisplay strings to interpolated strings, we need to fix the invalid C# syntax before returning it
+				// e.g. fixed - `{{ Id = {Id}, Name = {Name} }}`
+				debuggerDisplayValue = $$$"""{{{{{debuggerDisplayValue[2..^1]}}}}}"""; // range indexing removes the leading '\{' and trailing '}', which we replace
+			}
 			// I prefer how Rider handles this - instead of overriding the actual name of the variable, just prefix the value with the name
 			if (debuggerDisplayName is not null) debuggerDisplayValue = $"{debuggerDisplayName} = {debuggerDisplayValue}";
 			return new(typeName, debuggerDisplayValue, true, debugProxyTypeName);
