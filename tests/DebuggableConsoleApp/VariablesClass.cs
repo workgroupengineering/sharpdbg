@@ -129,7 +129,7 @@ public class VariablesClass
 		Tuple<int, string> localTuple = new(1, "stringInTuple");
 		(int A, string B) localValueTuple = (2, "stringInValueTuple");
 		GenericBox<int> localGeneric = new(42);
-		dynamic localDynamic = 123;
+		dynamic localDynamic = 241;
 		var localAnonymous = new { Id = 1, Name = "Anonymous" };
 
 		DateTime localDateTime = DateTime.Parse("13/06/2026 5:42:39 AM");
