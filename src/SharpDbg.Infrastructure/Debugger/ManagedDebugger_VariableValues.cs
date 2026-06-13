@@ -254,7 +254,7 @@ public partial class ManagedDebugger
 				CorElementType.Void => "void",
 				CorElementType.Boolean => Marshal.ReadByte(buffer) != 0 ? "true" : "false",
 				CorElementType.Char => ((char)Marshal.ReadInt16(buffer)).ToString(),
-				CorElementType.I1 => Marshal.ReadByte(buffer).ToString(),
+				CorElementType.I1 => ((sbyte)Marshal.ReadByte(buffer)).ToString(),
 				CorElementType.I2 => Marshal.ReadInt16(buffer).ToString(),
 				CorElementType.I4 => Marshal.ReadInt32(buffer).ToString(),
 				CorElementType.I8 => Marshal.ReadInt64(buffer).ToString(),
@@ -291,7 +291,7 @@ public partial class ManagedDebugger
 
 		object? result = elementType switch
 		{
-			CorElementType.I1 => Marshal.ReadByte(ppValue),
+			CorElementType.I1 => (sbyte)Marshal.ReadByte(ppValue),
 			CorElementType.I2 => Marshal.ReadInt16(ppValue),
 			CorElementType.I4 => Marshal.ReadInt32(ppValue),
 			CorElementType.I8 => Marshal.ReadInt64(ppValue),
