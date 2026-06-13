@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Ardalis.GuardClauses;
@@ -259,7 +260,7 @@ public partial class ManagedDebugger
 			{
 				CorElementType.Void => "void",
 				CorElementType.Boolean => Marshal.ReadByte(buffer) != 0 ? "true" : "false",
-				CorElementType.Char => ((char)Marshal.ReadInt16(buffer)).ToString(),
+				CorElementType.Char => Marshal.ReadInt16(buffer) is var v ? $"{v} '{(char)v}'" : throw new UnreachableException(),
 				CorElementType.I1 => ((sbyte)Marshal.ReadByte(buffer)).ToString(),
 				CorElementType.I2 => Marshal.ReadInt16(buffer).ToString(),
 				CorElementType.I4 => Marshal.ReadInt32(buffer).ToString(),
