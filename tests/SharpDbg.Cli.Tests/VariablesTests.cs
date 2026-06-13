@@ -36,17 +36,17 @@ public class VariablesTests(ITestOutputHelper testOutputHelper)
 
 		List<Variable> expectedVariables =
 		[
-			new() { VariablesReference = 3, Name = "this", EvaluateName = "this", Value = "{DebuggableConsoleApp.MyClass}", Type = "DebuggableConsoleApp.MyClass" },
-			new() { VariablesReference = 0, Name = "myParam", EvaluateName = "myParam", Value = "13", Type = "long" },
-			new() { VariablesReference = 0, Name = "myIntParam", EvaluateName = "myIntParam", Value = "6", Type = "int" },
-			new() { VariablesReference = 0, Name = "myInt", EvaluateName = "myInt", Value = "4", Type = "int" },
-			new() { VariablesReference = 4, Name = "enumVar", EvaluateName = "enumVar", Value = "SecondValue", Type = "DebuggableConsoleApp.MyEnum" },
-			new() { VariablesReference = 5, Name = "enumWithFlagsVar", EvaluateName = "enumWithFlagsVar", Value = "FlagValue1 | FlagValue3", Type = "DebuggableConsoleApp.MyEnumWithFlags" },
-			new() { VariablesReference = 0, Name = "nullableInt", EvaluateName = "nullableInt", Value = "null", Type = "int?" },
-			new() { VariablesReference = 6, Name = "structVar", EvaluateName = "structVar", Value = "{DebuggableConsoleApp.MyStruct}", Type = "DebuggableConsoleApp.MyStruct" },
-			new() { VariablesReference = 0, Name = "nullableIntWithVal", EvaluateName = "nullableIntWithVal", Value = "4", Type = "int?" },
-			new() { VariablesReference = 0, Name = "nullableRefType", EvaluateName = "nullableRefType", Value = "null", Type = "DebuggableConsoleApp.MyClass" },
-			new() { VariablesReference = 0, Name = "anotherVar", EvaluateName = "anotherVar", Value = "asdf", Type = "string" },
+			new() { VariablesReference = 3, Name = "this",					EvaluateName = "this",					Value = "{DebuggableConsoleApp.MyClass}",	Type = "DebuggableConsoleApp.MyClass" },
+			new() { VariablesReference = 0, Name = "myParam",				EvaluateName = "myParam",				Value = "13",								Type = "long" },
+			new() { VariablesReference = 0, Name = "myIntParam",			EvaluateName = "myIntParam",			Value = "6",								Type = "int" },
+			new() { VariablesReference = 0, Name = "myInt",					EvaluateName = "myInt",					Value = "4",								Type = "int" },
+			new() { VariablesReference = 4, Name = "enumVar",				EvaluateName = "enumVar",				Value = "SecondValue",						Type = "DebuggableConsoleApp.MyEnum" },
+			new() { VariablesReference = 5, Name = "enumWithFlagsVar",		EvaluateName = "enumWithFlagsVar",		Value = "FlagValue1 | FlagValue3",			Type = "DebuggableConsoleApp.MyEnumWithFlags" },
+			new() { VariablesReference = 0, Name = "nullableInt",			EvaluateName = "nullableInt",			Value = "null",								Type = "int?" },
+			new() { VariablesReference = 6, Name = "structVar",				EvaluateName = "structVar",				Value = "{DebuggableConsoleApp.MyStruct}",	Type = "DebuggableConsoleApp.MyStruct" },
+			new() { VariablesReference = 0, Name = "nullableIntWithVal",	EvaluateName = "nullableIntWithVal",	Value = "4",								Type = "int?" },
+			new() { VariablesReference = 0, Name = "nullableRefType",		EvaluateName = "nullableRefType",		Value = "null",								Type = "DebuggableConsoleApp.MyClass" },
+			new() { VariablesReference = 0, Name = "anotherVar",			EvaluateName = "anotherVar",			Value = "asdf",								Type = "string" },
 		];
 
 		debugProtocolHost.WithVariablesRequest(scope.VariablesReference, out var variables);
