@@ -177,6 +177,24 @@ public class DebugAdapter : DebugAdapterBase
 				Output = output
 			});
 		};
+		_debugger.SendRunInTerminalRequest += launchInfo =>
+		{
+			var runInTerminalRequest = new RunInTerminalRequest
+			{
+				Kind = launchInfo.LaunchRequestConsoleType switch
+				{
+					LaunchRequestConsoleType.IntegratedTerminal => RunInTerminalArguments.KindValue.Integrated,
+					LaunchRequestConsoleType.ExternalTerminal => RunInTerminalArguments.KindValue.External,
+					_ => throw new ArgumentOutOfRangeException(nameof(launchInfo.LaunchRequestConsoleType), $"Invalid LaunchRequestConsoleType for RunInTerminalRequest: '{launchInfo.LaunchRequestConsoleType}'")
+				},
+				Arguments = [launchInfo.Program, ..launchInfo.Arguments],
+				Cwd = launchInfo.Cwd,
+				Env = launchInfo.Env.ToDictionary(kvp => kvp.Key, kvp => (object)kvp.Value),
+				Title = $"{Path.GetFileName(launchInfo.Program)} [DEBUG]"
+			};
+			var resp = Protocol.SendClientRequestSync(runInTerminalRequest);
+			return resp.ProcessId;
+		 };
 	}
 
 	// Command handlers
@@ -274,14 +292,19 @@ public class DebugAdapter : DebugAdapterBase
 		}
 	}
 
-	protected override ConfigurationDoneResponse HandleConfigurationDoneRequest(ConfigurationDoneArguments arguments)
+	protected override async void HandleConfigurationDoneRequestAsync(IRequestResponder<ConfigurationDoneArguments> responder)
 	{
-		return ExecuteWithExceptionHandling(() =>
+		try
 		{
 			_logger?.Invoke("Configuration done");
-			_debugger.ConfigurationDone();
-			return new ConfigurationDoneResponse();
-		});
+			await _debugger.ConfigurationDone();
+			responder.SetResponse(new ConfigurationDoneResponse());
+		}
+		catch (Exception ex)
+		{
+			_logger?.Invoke($"HandleConfigurationDoneRequestAsync failed: {ex.Message} , {ex}");
+			responder.SetError(new ProtocolException($"ConfigurationDone failed: {ex.Message}", ex));
+		}
 	}
 
 	protected override SetBreakpointsResponse HandleSetBreakpointsRequest(SetBreakpointsArguments arguments)

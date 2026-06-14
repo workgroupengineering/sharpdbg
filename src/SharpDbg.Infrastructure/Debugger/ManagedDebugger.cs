@@ -5,6 +5,7 @@ using ClrDebug;
 using SharpDbg.Infrastructure.Debugger.ExpressionEvaluator;
 using SharpDbg.Infrastructure.Debugger.ExpressionEvaluator.Compiler;
 using SharpDbg.Infrastructure.Debugger.ExpressionEvaluator.Interpreter;
+using SharpDbg.Infrastructure.Debugger.Models;
 using ZLinq;
 
 namespace SharpDbg.Infrastructure.Debugger;
@@ -37,6 +38,7 @@ public partial class ManagedDebugger
 	public event Action<string, string, string>? OnModuleLoaded;
 	public event Action<string>? OnOutput;
 	public event Action<BreakpointManager.BreakpointInfo>? OnBreakpointChanged;
+	public event Func<LaunchInfo, int?> SendRunInTerminalRequest = null!;
 
 	public EvalStatus EvalStatus { get; }
 

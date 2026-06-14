@@ -119,11 +119,20 @@ public partial class ManagedDebugger
 	/// <summary>
 	/// Called when DAP configuration is complete - performs deferred launch or attach
 	/// </summary>
-	public void ConfigurationDone()
+	public async Task ConfigurationDone()
 	{
 		//System.Diagnostics.Debugger.Launch();
 		_logger?.Invoke("ConfigurationDone");
 
+		if (_pendingLaunchInfo is {LaunchRequestConsoleType: LaunchRequestConsoleType.ExternalTerminal or LaunchRequestConsoleType.IntegratedTerminal})
+		{
+			var launchedProcessId = await Task.Run(() => SendRunInTerminalRequest.Invoke(_pendingLaunchInfo)); // get off the dispatcher thread
+			if (launchedProcessId is not null)
+			{
+				_pendingAttachProcessId = launchedProcessId;
+				_pendingLaunchInfo = null;
+			}
+		}
 		// If we have a pending launch, perform it
 		if (_pendingLaunchInfo != null)
 		{
